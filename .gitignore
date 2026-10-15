@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Editor and operating system files
+.DS_Store
+.vscode/
+.idea/
+
+# Credentials and local exports
+*service-account*.json
+credentials*.json
+*.csv
+*.xlsx
