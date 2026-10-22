@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #142235;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --blue: #1d4ed8;
+        --blue-soft: #eff6ff;
+        --surface: #ffffff;
+        --background: #f5f7fb;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; }
+      body {
+        background: var(--background);
+        color: var(--ink);
+        font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system,
+          BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 520px;
+        max-width: 760px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+      }
+
+      header {
+        padding: 16px 18px 13px;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(135deg, #fff 35%, #f1f6ff 100%);
+      }
+      .title-row { display: flex; align-items: center; gap: 10px; }
+      .mark {
+        display: grid; place-items: center; width: 34px; height: 34px;
+        color: white; background: var(--blue); border-radius: 11px;
+        font-weight: 800; font-size: 15px;
+      }
+      h1 { margin: 0; font-size: 15px; letter-spacing: -0.01em; }
+      .subtitle { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+      .status {
+        display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+        color: #475569; font-size: 11px;
+      }
+      .dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+
+      #messages {
+        flex: 1; min-height: 0; overflow-y: auto; padding: 16px;
+        display: flex; flex-direction: column; gap: 12px;
+      }
+      .message { display: flex; flex-direction: column; max-width: 92%; }
+      .message.user { align-self: flex-end; align-items: flex-end; }
+      .message.assistant { align-self: flex-start; align-items: flex-start; }
+      .bubble {
+        padding: 10px 12px; border-radius: 14px; white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .user .bubble { color: #fff; background: var(--blue); border-bottom-right-radius: 4px; }
+      .assistant .bubble { color: #253449; background: #f1f5f9; border-bottom-left-radius: 4px; }
+      .assistant.error .bubble { color: #9f1239; background: #fff1f2; }
+
+      .suggestions {
+        padding: 0 15px 10px;
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+      .suggestion {
+        padding: 7px 9px; color: #1e40af; background: var(--blue-soft);
+        border: 1px solid #dbeafe; border-radius: 999px; cursor: pointer;
+        font: inherit; font-size: 11px;
+      }
+      .suggestion:hover { background: #dbeafe; }
+
+      form {
+        display: flex; gap: 8px; padding: 12px;
+        border-top: 1px solid var(--line);
+      }
+      textarea {
+        flex: 1; min-width: 0; resize: none; height: 42px; max-height: 90px;
+        padding: 10px 11px; color: var(--ink); background: #fff;
+        border: 1px solid #cbd5e1; border-radius: 11px; outline: none;
+        font: inherit;
+      }
+      textarea:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px #dbeafe; }
+      #send {
+        width: 44px; height: 42px; border: 0; border-radius: 11px;
+        color: #fff; background: var(--blue); cursor: pointer; font-size: 18px;
+      }
+      #send:disabled { opacity: 0.5; cursor: wait; }
+      .footnote {
+        padding: 0 13px 11px; color: #94a3b8;
+        text-align: center; font-size: 10px;
+      }
+
+      @media (max-width: 420px) {
+        .app { border: 0; border-radius: 0; }
+        header { padding-left: 14px; padding-right: 14px; }
+        #messages { padding: 13px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <div class="title-row">
+          <div class="mark" aria-hidden="true">K</div>
+          <div>
+            <h1>Ask the sales dashboard</h1>
+            <p class="subtitle">TheLook E-commerce · KPI assistant</p>
+          </div>
+        </div>
+        <div class="status">
+          <span class="dot"></span>
+          <span id="data-status">Checking dashboard snapshot…</span>
+        </div>
+      </header>
+
+      <section id="messages" aria-live="polite" aria-label="Conversation">
+        <div class="message assistant">
+          <div class="bubble">Ask me about completed sales, margins, categories, order status, or repeat customers. I answer from the dashboard summary data.</div>
+        </div>
+      </section>
+
+      <div class="suggestions" id="suggestions">
+        <button class="suggestion" type="button">What was the latest month's completed sales?</button>
+        <button class="suggestion" type="button">Which category had the highest gross profit?</button>
+        <button class="suggestion" type="button">What is the repeat-customer rate?</button>
+        <button class="suggestion" type="button">Summarize the order statuses.</button>
+      </div>
+
+      <form id="chat-form">
+        <textarea id="question" maxlength="600" placeholder="Ask a KPI question…" aria-label="Ask a KPI question"></textarea>
+        <button id="send" type="submit" aria-label="Send question">↑</button>
+      </form>
+      <div class="footnote">Answers use the latest dashboard snapshot. Verify important figures in the report.</div>
+    </main>
+
+    <script>
+      const conversation = [];
+      const messageList = document.getElementById('messages');
+      const questionInput = document.getElementById('question');
+      const sendButton = document.getElementById('send');
+      const statusLabel = document.getElementById('data-status');
+      let busy = false;
+
+      function addMessage(role, text, isError) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message ' + role + (isError ? ' error' : '');
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = text;
+
+        wrapper.appendChild(bubble);
+        messageList.appendChild(wrapper);
+        messageList.scrollTop = messageList.scrollHeight;
+        return wrapper;
+      }
+
+      function setBusy(value) {
+        busy = value;
+        sendButton.disabled = value;
+        sendButton.textContent = value ? '…' : '↑';
+      }
+
+      function ask(question) {
+        const cleanQuestion = String(question || '').trim();
+        if (!cleanQuestion || busy) return;
+
+        const priorHistory = conversation.slice(-6).map(function (message) {
+          return { role: message.role, text: message.text };
+        });
+
+        conversation.push({ role: 'user', text: cleanQuestion });
+        addMessage('user', cleanQuestion, false);
+        questionInput.value = '';
+        setBusy(true);
+
+        const typing = addMessage(
+          'assistant',
+          'Looking up the dashboard summary…',
+          false
+        );
+
+        google.script.run
+          .withSuccessHandler(function (answer) {
+            typing.remove();
+            conversation.push({ role: 'assistant', text: answer });
+            addMessage('assistant', answer, false);
+            setBusy(false);
+            questionInput.focus();
+          })
+          .withFailureHandler(function (error) {
+            typing.remove();
+            const message = error && error.message
+              ? error.message
+              : 'The request could not be completed.';
+            addMessage('assistant', message, true);
+            setBusy(false);
+            questionInput.focus();
+          })
+          .askKpiAssistant(cleanQuestion, priorHistory);
+      }
+
+      document.getElementById('chat-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        ask(questionInput.value);
+      });
+
+      questionInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          ask(questionInput.value);
+        }
+      });
+
+      document.querySelectorAll('.suggestion').forEach(function (button) {
+        button.addEventListener('click', function () {
+          ask(button.textContent);
+        });
+      });
+
+      google.script.run
+        .withSuccessHandler(function (meta) {
+          if (meta && meta.ready) {
+            statusLabel.textContent =
+              'Dashboard snapshot updated ' + meta.refreshedAt;
+          } else {
+            statusLabel.textContent = meta && meta.message
+              ? meta.message
+              : 'Dashboard snapshot unavailable';
+            statusLabel.style.color = '#b45309';
+          }
+        })
+        .withFailureHandler(function () {
+          statusLabel.textContent =
+            'Could not read dashboard snapshot status';
+          statusLabel.style.color = '#b45309';
+        })
+        .getKpiAssistantMeta();
+    </script>
+  </body>
+</html>
