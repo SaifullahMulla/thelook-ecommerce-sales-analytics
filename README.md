@@ -45,21 +45,27 @@ data together to answer questions such as:
 
 ## Repository Structure
 
-    .
-    ├── .gitignore
-    ├── README.md
-    ├── sql/
-    │   ├── 00_source_validation.sql
-    │   ├── 01_daily_sales_profit.sql
-    │   ├── 02_monthly_sales_profit.sql
-    │   ├── 03_product_category_performance.sql
-    │   ├── 04_returns_cancellations.sql
-    │   ├── 05_repeat_customer_analysis.sql
-    │   └── 06_monthly_customer_trend.sql
-    ├── docs/
-    │   └── metric_definitions.md
-    └── python/
-        └── README.md
+thelook-ecommerce-sales-analytics/
+├── .gitignore
+├── README.md
+├── apps_script/
+│   ├── Code.gs
+│   ├── KpiAssistant.gs
+│   ├── KpiAssistantUI.html
+│   └── appsscript.json
+├── docs/
+│   ├── kpi_assistant.md
+│   └── metric_definitions.md
+├── python/
+│   └── README.md
+└── sql/
+    ├── 00_source_validation.sql
+    ├── 01_daily_sales_profit.sql
+    ├── 02_monthly_sales_profit.sql
+    ├── 03_product_category_performance.sql
+    ├── 04_returns_cancellations.sql
+    ├── 05_repeat_customer_analysis.sql
+    └── 06_monthly_customer_trend.sql
 
 ## Analytics Workflow
 
@@ -177,3 +183,21 @@ last successful refresh fingerprint stored in the `refresh_control` sheet tab.
 Because the check runs daily, a source update may take up to a day to appear
 in the dashboard. BigQuery query processing and Apps Script quotas apply when
 a full refresh runs.
+
+
+## Conversational KPI Assistant
+
+The Apps Script assistant answers supported questions about completed sales,
+gross margin, product categories, order status, and customer purchasing
+behavior using the latest published dashboard snapshot.
+
+- **Interface:** Google Apps Script web app
+- **Dashboard placement:** URL embed beside the Sales Overview page in Looker Studio
+- **Context:** Aggregate data from the five Google Sheets dashboard tabs
+- **Refresh:** The assistant snapshot is published after a successful dashboard
+  refresh
+- **Secret storage:** Gemini API key is stored in Apps Script Script Properties,
+  not in the repository
+
+See [`docs/kpi_assistant.md`](docs/kpi_assistant.md) for the architecture,
+metric definitions, configuration, and deployment details.
