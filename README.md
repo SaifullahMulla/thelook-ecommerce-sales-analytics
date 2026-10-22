@@ -157,3 +157,23 @@ dataset is updated.
 - Dashboard data is currently sourced through Google Sheets. Refresh
   automation and a conversational analytics assistant are planned extensions,
   not completed project components.
+
+
+## Automated dashboard refresh
+
+A Google Apps Script project refreshes the Google Sheets tabs used by the
+Looker Studio dashboard. A daily time-driven trigger runs
+`checkSourceAndRefresh()`.
+
+The script checks BigQuery metadata for the source tables used by the
+dashboard. It compares each table’s last-modified time and row count with the
+last successful refresh fingerprint stored in the `refresh_control` sheet tab.
+
+- If the fingerprint has not changed, the script skips the dashboard queries.
+- If a change is detected, or the script is running for the first time, it
+  runs `refreshDashboardData()` and updates the dashboard tabs.
+- The fingerprint is saved after a successful refresh.
+
+Because the check runs daily, a source update may take up to a day to appear
+in the dashboard. BigQuery query processing and Apps Script quotas apply when
+a full refresh runs.
